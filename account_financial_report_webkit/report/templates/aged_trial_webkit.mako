@@ -112,12 +112,31 @@
                   <div class="act_as_tbody">
                     %for partner_name, p_id, p_ref, p_name in acc.partners_order:
                        %if acc.aged_lines.get(p_id):
-                       <div class="act_as_row lines">
                          <%line = acc.aged_lines[p_id]%>
                          <%percents = acc.aged_percents%>
+                         <%detail = line.get('aged_detail')%>
                          <%totals = acc.aged_totals%>
-                           <div class="act_as_cell first_column">${partner_name}</div>
-                           <div class="act_as_cell">${p_ref or ''}</div>
+                         %if detail:
+                            <div class="act_as_caption account_title">
+                                ${partner_name}
+                            </div>
+                            %for detail_line in detail:
+                                <div class="act_as_row lines">
+                                    <div class="act_as_cell first_column">${detail_line['date']}</div>
+                                    <div class="act_as_cell">${detail_line['name']}</div>
+
+                                    <div class="act_as_cell amount"> </div>
+                                    %for classif in ranges:
+                                        <div class="act_as_cell classif amount">
+                                            ${formatLang(detail_line.get(classif, ''))}
+                                        </div>
+                                    %endfor
+                                </div>
+                            %endfor
+                         %endif
+                           <div class="act_as_row lines">
+                            <div class="act_as_cell first_column">${not detail and partner_name or ''}</div>
+                           <div class="act_as_cell">${not detail and p_ref or ''}</div>
 
                            <div class="act_as_cell amount">${formatLang(line.get('balance') or 0.0) | amount}</div>
                             %for classif in ranges:

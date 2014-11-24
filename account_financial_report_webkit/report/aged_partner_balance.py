@@ -134,6 +134,7 @@ class AccountAgedTrialBalanceWebkit(PartnersOpenInvoicesWebkit):
             ids,
             report_type=report_type
         )
+        detail = self._get_form_param('detail', data)
 
         for acc in self.objects:
             acc.aged_lines = {}
@@ -142,7 +143,8 @@ class AccountAgedTrialBalanceWebkit(PartnersOpenInvoicesWebkit):
             for part_id, partner_lines in acc.ledger_lines.items():
                 aged_lines = self.compute_aged_lines(part_id,
                                                      partner_lines,
-                                                     data)
+                                                     data,
+                                                     detail)
                 if aged_lines:
                     acc.aged_lines[part_id] = aged_lines
             acc.aged_totals = totals = self.compute_totals(
@@ -152,7 +154,7 @@ class AccountAgedTrialBalanceWebkit(PartnersOpenInvoicesWebkit):
         del(acc.ledger_lines)
         return res
 
-    def compute_aged_lines(self, partner_id, ledger_lines, data):
+    def compute_aged_lines(self, partner_id, ledger_lines, data, detail):
         """Add property aged_lines to accounts browse records
 
         contained in :attr:`objects` for a given partner
@@ -170,8 +172,10 @@ class AccountAgedTrialBalanceWebkit(PartnersOpenInvoicesWebkit):
         res = {}
         end_date = self._get_end_date(data)
         aged_lines = dict.fromkeys(RANGES, 0.0)
+        aged_detail = []
         reconcile_lookup = self.get_reconcile_count_lookup(lines_to_age)
         res['aged_lines'] = aged_lines
+        res['aged_detail'] = aged_detail
         for line in lines_to_age:
             compute_method = self.get_compute_method(reconcile_lookup,
                                                      partner_id,
@@ -179,6 +183,14 @@ class AccountAgedTrialBalanceWebkit(PartnersOpenInvoicesWebkit):
             delay = compute_method(line, end_date, ledger_lines)
             classification = self.classify_line(partner_id, delay)
             aged_lines[classification] += line['debit'] - line['credit']
+            if detail:
+                detail = {
+                    'name': line['move_name'],
+                    'date': line['ldate'],
+                    classification: line['debit'] - line['credit']
+                }
+                aged_detail.append(detail)
+
         self.compute_balance(res, aged_lines)
         return res
 

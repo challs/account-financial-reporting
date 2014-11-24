@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from openerp.osv import orm
+from openerp.osv import fields, orm
 
 
 class AccountAgedTrialBalance(orm.TransientModel):
@@ -29,11 +29,19 @@ class AccountAgedTrialBalance(orm.TransientModel):
 
     _inherit = "open.invoices.webkit"
     _name = "account.aged.trial.balance.webkit"
-    _description = "Aged partner balanced"
+    _description = "Aged partner balance"
+
+    _columns = {
+        'detail': fields.boolean('Show invoice detail'),
+    }
 
     def _print_report(self, cr, uid, ids, data, context=None):
         # we update form with display account value
         data = self.pre_print_report(cr, uid, ids, data, context=context)
+        vals = self.read(cr, uid, ids,
+                         ['detail'],
+                         context=context)[0]
+        data['form'].update(vals)
         return {'type': 'ir.actions.report.xml',
                 'report_name': 'account.account_aged_trial_balance_webkit',
                 'datas': data}
