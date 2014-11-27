@@ -230,6 +230,11 @@ class HeaderFooterTextWebKitParser(webkit_report.WebKitParser):
             css = ''
 
         translate_call = partial(self.translate_call, parser_instance)
+
+        # HACK to workaround windows issue
+        translate_call = str
+        # HACK
+
         # default_filters=['unicode', 'entity'] can be used to set global
         # filter
         body_mako_tpl = mako_template(template)
