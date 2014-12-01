@@ -31,6 +31,7 @@ import os
 import subprocess
 import tempfile
 import logging
+import platform
 from functools import partial
 
 
@@ -108,6 +109,10 @@ class HeaderFooterTextWebKitParser(webkit_report.WebKitParser):
         command.append('--quiet')
         # default to UTF-8 encoding.  Use <meta charset="latin-1"> to override.
         command.extend(['--encoding', 'utf-8'])
+
+        if platform.system == 'Windows':
+            # DPI is 96 on Windows, rather than 75 on Linux
+            command.extend(['--zoom', '1.33'])
 
         if webkit_header.margin_top:
             command.extend(
